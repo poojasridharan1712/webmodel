@@ -1,0 +1,116 @@
+mkdir LoginTesting
+cd LoginTesting
+npm init -y
+npm install selenium-webdriver
+npm install --save-dev http-server
+code .
+
+notepad index.html
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Page</title>
+</head>
+<body>
+    <h2>Login Form</h2>
+
+    <input type="text" id="username"
+           placeholder="Enter username">
+    <br><br>
+
+    <input type="password" id="password"
+           placeholder="Enter password">
+    <br><br>
+
+    <button id="loginBtn" onclick="login()">
+        Login
+    </button>
+
+    <p id="result"></p>
+
+    <script>
+        function login() {
+            var username =
+                document.getElementById("username").value;
+            var password =
+                document.getElementById("password").value;
+
+            if (username === "admin" &&
+                password === "1234") {
+                document.getElementById("result").innerText =
+                    "Login Successful";
+            } else {
+                document.getElementById("result").innerText =
+                    "Invalid Credentials";
+            }
+        }
+    </script>
+</body>
+</html>
+```
+notepad test.js
+
+const { Builder, By, until } =
+    require("selenium-webdriver");
+
+const chrome = require("selenium-webdriver/chrome");
+
+async function testLogin() {
+    let driver;
+
+    try {
+        // Chrome options
+        let options = new chrome.Options();
+        options.addArguments("--disable-notifications");
+        options.addArguments("--log-level=3");
+
+        driver = await new Builder()
+            .forBrowser("chrome")
+            .setChromeOptions(options)
+            .build();
+
+        await driver.manage().window().maximize();
+
+        // Open website
+        await driver.get("http://127.0.0.1:3000");
+
+        // Enter username
+        await driver.findElement(By.id("username"))
+            .sendKeys("admin");
+
+        // Enter password
+        await driver.findElement(By.id("password"))
+            .sendKeys("1234");
+
+        // Click login
+        await driver.findElement(By.id("loginBtn"))
+            .click();
+
+        // Verify result
+        await driver.wait(
+            until.elementTextIs(
+                await driver.findElement(By.id("result")),
+                "Login Successful"
+            ),
+            10000
+        );
+
+        console.log("TEST PASSED: Login Successful");
+
+        await driver.sleep(5000);
+
+    } catch (error) {
+        console.log("TEST FAILED:", error.message);
+    } finally {
+        if (driver) {
+            await driver.quit();
+        }
+    }
+}
+
+testLogin();
+
+terminal-1-> npx http-server -p 3000
+terminal-2->node test.js

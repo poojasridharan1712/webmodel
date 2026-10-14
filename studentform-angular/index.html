@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en" ng-app="studentApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="app.js"></script>
+</head>
+
+<body ng-controller="studentController">
+    <div class="container">
+        <h1>Student Registration Form</h1>
+
+        <form name="studentForm" ng-submit="register()" novalidate>
+
+            <label>Student Name</label>
+            <input type="text" name="name"
+                   ng-model="student.name"
+                   ng-pattern="/^[a-zA-Z ]+$/"
+                   required>
+
+            <span ng-show="studentForm.name.$touched && studentForm.name.$error.required">
+                Name is required.
+            </span>
+            <span ng-show="studentForm.name.$touched && studentForm.name.$error.pattern">
+                Enter a valid name.
+            </span>
+
+            <label>Register Number</label>
+            <input type="text" name="regno"
+                   ng-model="student.regno" required>
+
+            <span ng-show="studentForm.regno.$touched && studentForm.regno.$invalid">
+                Register number is required.
+            </span>
+
+            <label>Email</label>
+            <input type="email" name="email"
+                   ng-model="student.email" required>
+
+            <span ng-show="studentForm.email.$touched && studentForm.email.$invalid">
+                Enter a valid email.
+            </span>
+
+            <label>Phone Number</label>
+            <input type="tel" name="phone"
+                   ng-model="student.phone"
+                   ng-pattern="/^[0-9]{10}$/"
+                   required>
+
+            <span ng-show="studentForm.phone.$touched && studentForm.phone.$invalid">
+                Enter a valid 10-digit phone number.
+            </span>
+
+            <label>Department</label>
+            <select name="department" ng-model="student.department" required>
+                <option value="">Select Department</option>
+                <option>Information Technology</option>
+                <option>Computer Science</option>
+                <option>Electronics and Communication</option>
+                <option>Electrical and Electronics</option>
+                <option>Mechanical Engineering</option>
+                <option>Civil Engineering</option>
+            </select>
+
+            <span ng-show="studentForm.department.$touched && studentForm.department.$invalid">
+                Select a department.
+            </span>
+
+            <label>Year of Study</label>
+            <select name="year" ng-model="student.year" required>
+                <option value="">Select Year</option>
+                <option>I Year</option>
+                <option>II Year</option>
+                <option>III Year</option>
+                <option>IV Year</option>
+            </select>
+
+            <span ng-show="studentForm.year.$touched && studentForm.year.$invalid">
+                Select your year.
+            </span>
+            <label>Gender</label>
+            <select name="gender" ng-model="student.gender" required>
+                <option value="">Select Gender</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+            </select>
+            <span ng-show="studentForm.gender.$touched && studentForm.gender.$invalid">
+                Select your gender.
+            </span>
+
+            <button type="submit" ng-disabled="studentForm.$invalid">
+                Register
+            </button>
+        </form>
+
+        <p class="message" ng-if="message">{{message}}</p>
+
+        <div class="success" ng-if="registeredStudent">
+            <h2>Registration Successful!</h2>
+            <p><b>Name:</b> {{registeredStudent.name}}</p>
+            <p><b>Register Number:</b> {{registeredStudent.regno}}</p>
+            <p><b>Email:</b> {{registeredStudent.email}}</p>
+            <p><b>Phone:</b> {{registeredStudent.phone}}</p>
+            <p><b>Department:</b> {{registeredStudent.department}}</p>
+            <p><b>Year:</b> {{registeredStudent.year}}</p>
+            <p><b>Gender:</b> {{registeredStudent.gender}}</p>
+        </div>
+
+        <h2 ng-if="students.length">Registered Students</h2>
+
+        <div class="success" ng-repeat="s in students track by s.regno">
+            <p><b>{{s.name}}</b> - {{s.regno}}</p>
+            <p>{{s.department}} - {{s.year}}</p>
+        </div>
+    </div>
+</body>
+</html>

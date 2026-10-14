@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html ng-app="gymApp">
+<head>
+    <title>Gym Registration Portal</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+
+    <style>
+        body { font-family: Arial; background: #eee; text-align: center; }
+        .box { background: white; width: 320px; margin: 40px auto; padding: 20px; border-radius: 10px; }
+        input, select { width: 90%; padding: 10px; margin: 8px; }
+        button { padding: 10px 20px; background: green; color: white; border: none; }
+        h2 { color: green; }
+    </style>
+</head>
+
+<body ng-controller="gymController">
+<div class="box">
+    <h2>Job Registration</h2>
+
+    <input ng-model="member.name" placeholder="Name">
+    <input ng-model="member.age" type="number" placeholder="Age">
+    <select ng-model="member.plan">
+        <option value="">Select Degree</option>
+        <option>Master</option>
+        <option>Bachelor</option>
+        <option>PhD</option>
+    </select>
+    <select ng-model="department.dep">
+        <option value="">Select Department</option>
+        <option>IT</option>
+        <option>HR</option>
+        <option>TL</option>
+    </select>
+    <h3>Registered Members</h3>
+
+<input ng-model="searchName" placeholder="Search member">
+
+<select ng-model="sortField">
+    <option value="name">Sort by Name</option>
+    <option value="age">Sort by Age</option>
+    <option value="plan">Sort by Plan</option>
+</select>
+
+<p ng-repeat="m in members | filter:searchName | orderBy:sortField">
+    {{m.name | uppercase}} -
+    {{m.age}} years -
+    {{m.plan | lowercase}}
+</p>
+    <button ng-click="register()">Register</button>
+    <p>{{message}}</p>
+
+    <h3>Registered Members</h3>
+    <p ng-repeat="m in members">
+        {{m.name}} - {{m.plan}}
+        {{m.age}} years old
+        {{department.dep}}
+    </p>
+</div>
+
+<script>
+var app = angular.module("gymApp", []);
+
+// FACTORY
+app.factory("gymFactory", function() {
+    return {
+        validate: function(member) {
+            return member.name && member.age >= 18 && member.plan;
+        }
+    };
+});
+
+// SERVICE
+app.service("gymService", function() {
+    this.members = [];
+
+    this.addMember = function(member) {
+        this.members.push({
+            name: member.name,
+            age: member.age,
+            plan: member.plan,
+            department: member.department
+        });
+    };
+
+    this.getMembers = function() {
+        return this.members;
+    };
+});
+
+// CONTROLLER
+app.controller("gymController", function($scope, gymFactory, gymService) {
+    $scope.member = {};
+    $scope.members = gymService.getMembers();
+
+    $scope.register = function() {
+        if (gymFactory.validate($scope.member)) {
+            gymService.addMember($scope.member);
+            $scope.message = "Registration Successful!";
+            $scope.member = {};
+        } else {
+            $scope.message = "Enter valid details.";
+        }
+    };
+});
+</script>
+</body>
+</html>

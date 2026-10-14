@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Booking Management</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            color: #333;
+        }
+
+        header {
+            background: navy;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 15px;
+        }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .booking {
+            background: #e0ecff;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Hotel Booking Management</h1>
+        <p>Manage your guest room bookings</p>
+    </header>
+
+    <main class="container">
+        <section class="panel">
+            <h2>Add New Booking</h2>
+
+            <form id="bookingForm">
+                <label for="guest">Guest Name</label>
+                <input id="guest" type="text"
+                       placeholder="Enter guest name" required>
+
+                <label for="room">Room Number</label>
+                <input id="room" type="text"
+                       placeholder="Enter room number" required>
+
+                <label for="type">Room Type</label>
+                <select id="type" required>
+                    <option value="">Select room type</option>
+                    <option value="Single">Single</option>
+                    <option value="Double">Double</option>
+                    <option value="Deluxe">Deluxe</option>
+                    <option value="Suite">Suite</option>
+                </select>
+
+                <button type="submit">Book Room</button>
+            </form>
+
+            <p id="message" role="status"></p>
+        </section>
+
+        <section class="panel">
+            <h2>All Bookings</h2>
+            <button type="button" id="refreshBtn">Refresh</button>
+
+            <p id="bookingCount">Total bookings: 0</p>
+            <div id="bookingList">Loading bookings...</div>
+        </section>
+    </main>
+
+    <footer>Hotel Booking Management System</footer>
+</body>
+</html>

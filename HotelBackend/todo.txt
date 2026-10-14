@@ -1,0 +1,468 @@
+HotelBackend/
+│
+├── node_modules/
+├── .env
+├── .gitignore
+├── package.json
+├── server.js
+│
+└── public/
+    ├── index.html
+    └── script.js
+
+mkdir HotelBackend
+cd HotelBackend
+npm init -y
+npm install express mongoose
+mkdir public
+
+notepad .env
+
+MONGO_URI=mongodb://127.0.0.1:27017/hoteldb
+
+notepad server.js
+
+require("dotenv").config();
+
+const express = require("express");
+const mongoose = require("mongoose");
+const path = require("path");
+
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+// Connect to local MongoDB
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => {
+        console.log("MongoDB Connected");
+        app.listen(PORT, () => {
+            console.log(`Server running at http://localhost:${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.log("MongoDB connection error:", err.message);
+    });
+
+// Booking schema
+const bookingSchema = new mongoose.Schema({
+    guest: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    room: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    type: {
+        type: String,
+        required: true,
+        trim: true
+    }
+});
+
+const Booking = mongoose.model("Booking", bookingSchema);
+
+// Get all bookings
+app.get("/api/bookings", async (req, res) => {
+    try {
+        const bookings = await Booking.find().sort({ _id: -1 });
+        res.json(bookings);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Add booking
+app.post("/api/bookings", async (req, res) => {
+    try {
+        const { guest, room, type } = req.body;
+
+        if (!guest || !room || !type) {
+            return res.status(400).json({
+                error: "Please fill in all fields"
+            });
+        }
+
+        const booking = await Booking.create({
+            guest,
+            room,
+            type
+        });
+
+        res.status(201).json(booking);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Update booking
+app.put("/api/bookings/:id", async (req, res) => {
+    try {
+        const booking = await Booking.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!booking) {
+            return res.status(404).json({
+                error: "Booking not found"
+            });
+        }
+
+        res.json(booking);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Delete booking
+app.delete("/api/bookings/:id", async (req, res) => {
+    try {
+        const booking = await Booking.findByIdAndDelete(req.params.id);
+
+        if (!booking) {
+            return res.status(404).json({
+                error: "Booking not found"
+            });
+        }
+
+        res.json({ message: "Booking deleted successfully" });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+notepad public\index.html
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Booking Management</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            color: #333;
+        }
+
+        header {
+            background: navy;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 15px;
+        }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .booking {
+            background: #e0ecff;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>Hotel Booking Management</h1>
+        <p>Manage your guest room bookings</p>
+    </header>
+
+    <main class="container">
+        <section class="panel">
+            <h2>Add New Booking</h2>
+
+            <form id="bookingForm">
+                <label for="guest">Guest Name</label>
+                <input id="guest" type="text"
+                       placeholder="Enter guest name" required>
+
+                <label for="room">Room Number</label>
+                <input id="room" type="text"
+                       placeholder="Enter room number" required>
+
+                <label for="type">Room Type</label>
+                <select id="type" required>
+                    <option value="">Select room type</option>
+                    <option value="Single">Single</option>
+                    <option value="Double">Double</option>
+                    <option value="Deluxe">Deluxe</option>
+                    <option value="Suite">Suite</option>
+                </select>
+
+                <button type="submit">Book Room</button>
+            </form>
+
+            <p id="message" role="status"></p>
+        </section>
+
+        <section class="panel">
+            <h2>All Bookings</h2>
+            <button type="button" id="refreshBtn">Refresh</button>
+
+            <p id="bookingCount">Total bookings: 0</p>
+            <div id="bookingList">Loading bookings...</div>
+        </section>
+    </main>
+
+    <footer>Hotel Booking Management System</footer>
+</body>
+</html>
+
+notepad public\script.js
+
+
+const API = "/api/bookings";
+
+const form = document.getElementById("bookingForm");
+const guestInput = document.getElementById("guest");
+const roomInput = document.getElementById("room");
+const typeInput = document.getElementById("type");
+const message = document.getElementById("message");
+const bookingList = document.getElementById("bookingList");
+const bookingCount = document.getElementById("bookingCount");
+
+let editingId = null;
+
+// Show a status message
+function showMessage(text) {
+    message.textContent = text;
+}
+
+// Add or update a booking
+form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const booking = {
+        guest: guestInput.value.trim(),
+        room: roomInput.value.trim(),
+        type: typeInput.value
+    };
+
+    const isEditing = editingId !== null;
+
+    try {
+        // Check existing bookings before adding or updating
+        const checkResponse = await fetch(API);
+        const bookings = await checkResponse.json();
+
+        if (!checkResponse.ok) {
+            throw new Error("Unable to check existing bookings");
+        }
+
+        const exists = bookings.some(function (b) {
+            return String(b.room).trim().toLowerCase() ===
+                       booking.room.toLowerCase() &&
+                   b.type === booking.type &&
+                   String(b._id) !== String(editingId);
+        });
+
+        if (exists) {
+            showMessage("Room already booked! Choose another room.");
+            return;
+        }
+
+        const url = isEditing ? `${API}/${editingId}` : API;
+        const method = isEditing ? "PUT" : "POST";
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(booking)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Request failed");
+        }
+
+        showMessage(
+            isEditing
+                ? "Booking updated successfully!"
+                : "Booking added successfully!"
+        );
+
+        form.reset();
+        editingId = null;
+
+        form.querySelector('button[type="submit"]')
+            .textContent = "Book Room";
+
+        await loadBookings();
+
+    } catch (error) {
+        showMessage("Error: " + error.message);
+    }
+});
+
+// Fetch and display all bookings
+async function loadBookings() {
+    bookingList.textContent = "Loading bookings...";
+
+    try {
+        const response = await fetch(API);
+        const bookings = await response.json();
+
+        if (!response.ok) {
+            throw new Error("Unable to load bookings");
+        }
+
+        bookingCount.textContent =
+            `Total bookings: ${bookings.length}`;
+
+        bookingList.replaceChildren();
+
+        if (bookings.length === 0) {
+            bookingList.textContent = "No bookings found.";
+            return;
+        }
+
+        bookings.forEach(booking => {
+            const card = document.createElement("div");
+            card.className = "booking";
+
+            const guest = document.createElement("p");
+            guest.textContent = `Guest: ${booking.guest}`;
+
+            const room = document.createElement("p");
+            room.textContent = `Room: ${booking.room}`;
+
+            const type = document.createElement("p");
+            type.textContent = `Type: ${booking.type}`;
+
+            const editButton = document.createElement("button");
+            editButton.className = "edit-btn";
+            editButton.textContent = "Edit";
+
+            editButton.addEventListener("click", () => {
+                guestInput.value = booking.guest;
+                roomInput.value = booking.room;
+                typeInput.value = booking.type;
+
+                editingId = booking._id;
+
+                form.querySelector('button[type="submit"]')
+                    .textContent = "Update Booking";
+
+                showMessage(
+                    "Edit the details and click Update Booking."
+                );
+
+                form.scrollIntoView({ behavior: "smooth" });
+            });
+
+            const deleteButton = document.createElement("button");
+            deleteButton.className = "delete-btn";
+            deleteButton.textContent = "Delete";
+
+            deleteButton.addEventListener("click", () => {
+                deleteBooking(booking._id);
+            });
+
+            card.append(
+                guest,
+                room,
+                type,
+                editButton,
+                deleteButton
+            );
+
+            bookingList.appendChild(card);
+        });
+
+    } catch (error) {
+        bookingList.textContent =
+            "Could not load bookings. " + error.message;
+    }
+}
+
+// Delete a booking
+async function deleteBooking(id) {
+    if (!confirm("Do you want to delete this booking?")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API}/${id}`, {
+            method: "DELETE"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Delete failed");
+        }
+
+        showMessage("Booking deleted successfully!");
+        await loadBookings();
+
+    } catch (error) {
+        showMessage("Error: " + error.message);
+    }
+}
+
+// Refresh bookings
+document.getElementById("refreshBtn")
+    .addEventListener("click", loadBookings);
+
+// Load data when page opens
+loadBookings();
+
+
+run:
+npm install dotenv
+node server.js

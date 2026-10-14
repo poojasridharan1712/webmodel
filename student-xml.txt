@@ -1,0 +1,153 @@
+mkdir StudentXML
+cd StudentXML
+code .
+StudentXML/
+│
+├── student.dtd
+├── student.xml
+├── student.xsl
+└── transform.py
+
+student.dtd
+
+<!ELEMENT students (student+)>
+<!ELEMENT student (name, regno, email, phone, department, year, gender, address)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT regno (#PCDATA)>
+<!ELEMENT email (#PCDATA)>
+<!ELEMENT phone (#PCDATA)>
+<!ELEMENT department (#PCDATA)>
+<!ELEMENT year (#PCDATA)>
+<!ELEMENT gender (#PCDATA)>
+<!ELEMENT address (#PCDATA)>
+
+student.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE students SYSTEM "student.dtd">
+<?xml-stylesheet type="text/xsl" href="student.xsl"?>
+
+<students>
+    <student>
+        <name>Pooja</name>
+        <regno>12345</regno>
+        <email>pooja@gmail.com</email>
+        <phone>9876543210</phone>
+        <department>IT</department>
+        <year>3</year>
+        <gender>Female</gender>
+        <address>Madurai, Tamil Nadu</address>
+    </student>
+
+    <student>
+        <name>Priya</name>
+        <regno>12346</regno>
+        <email>priya@gmail.com</email>
+        <phone>9876543211</phone>
+        <department>CSE</department>
+        <year>2</year>
+        <gender>Female</gender>
+        <address>Chennai, Tamil Nadu</address>
+    </student>
+</students>
+
+student.xsl
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+<xsl:template match="/">
+<html>
+<head>
+    <title>Student Registration</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: #e0e7ff;
+        }
+
+        h2 {
+            color: #4338ca;
+        }
+
+        table {
+            margin: auto;
+            border-collapse: collapse;
+            width: 90%;
+            background: white;
+        }
+
+        th, td {
+            border: 1px solid #999;
+            padding: 10px;
+        }
+
+        th {
+            background-color: #4338ca;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h2>Student Registration Details</h2>
+
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Register No</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Department</th>
+            <th>Year</th>
+            <th>Gender</th>
+            <th>Address</th>
+        </tr>
+
+        <xsl:for-each select="students/student">
+            <tr>
+                <td><xsl:value-of select="name"/></td>
+                <td><xsl:value-of select="regno"/></td>
+                <td><xsl:value-of select="email"/></td>
+                <td><xsl:value-of select="phone"/></td>
+                <td><xsl:value-of select="department"/></td>
+                <td><xsl:value-of select="year"/></td>
+                <td><xsl:value-of select="gender"/></td>
+                <td><xsl:value-of select="address"/></td>
+            </tr>
+        </xsl:for-each>
+    </table>
+</body>
+</html>
+</xsl:template>
+</xsl:stylesheet>
+
+transform.py
+
+
+from lxml import etree
+
+xml = etree.parse("student.xml")
+xslt = etree.parse("student.xsl")
+
+transform = etree.XSLT(xslt)
+result = transform(xml)
+
+with open("student.html", "wb") as file:
+    file.write(
+        etree.tostring(
+            result,
+            method="html",
+            pretty_print=True,
+            encoding="UTF-8"
+        )
+    )
+
+print("XML transformed into HTML successfully!")
+print("Open student.html in your browser.")
+
+
+python --version
+python -m pip install lxml
+python transform.py
